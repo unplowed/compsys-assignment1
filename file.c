@@ -89,7 +89,7 @@ int is_ascii(char buffer[32]) {
 
 int is_latin1(char buffer[32]) {
   if (!is_ascii(buffer))
-    return 0;
+    return 1;
 
   for (int i = 0; i < 32; i++) {
     char b = buffer[i];
