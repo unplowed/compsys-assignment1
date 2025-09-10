@@ -42,10 +42,29 @@
           default = {
             type = "app";
             program = toString (
-              pkgs.writeShellScript "compile-and-run.sh" ''
-                gcc file.c -o file
-                ./file
-              ''
+              pkgs.writeShellScript "compile-and-run.sh" (
+                let
+                  files = [
+                    "empty"
+                    "ascii"
+                    "latin1"
+                    "eggplant"
+                    "file"
+                    "priviledged"
+                  ];
+                in
+                ''
+                  gcc file.c -o file
+                  touch priviledged
+                  chmod -r priviledged
+                  ${builtins.concatStringsSep "\n" (map (x: ''
+                    echo "Testing file ${x}"
+                    ./file ${x}
+                    echo " "
+                  '') files)}
+                  rm priviledged
+                ''
+              )
             );
           };
         }
