@@ -22,7 +22,7 @@
       devShells = forAllSystems (
         system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs { inherit system; };
         in
         {
           default = pkgs.mkShell {
@@ -33,13 +33,37 @@
         }
       );
 
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.stdenv.mkDerivation rec {
+            pname = "file";
+            version = "v0.0.1";
+            src = ./file.c;
+            phases = [
+              "buildPhase"
+            ];
+
+            buildPhase = ''
+              mkdir -p $out/bin
+              gcc $src -o $out/bin/${pname}
+            '';
+
+            meta.mainProgram = "file";
+          };
+        }
+      );
+
       apps = forAllSystems (
         system:
         let
           pkgs = import nixpkgs { inherit system; };
         in
         {
-          default = {
+          test = {
             type = "app";
             program = toString (
               pkgs.writeShellScript "compile-and-run.sh" (
@@ -57,11 +81,13 @@
                   gcc file.c -o file
                   touch priviledged
                   chmod -r priviledged
-                  ${builtins.concatStringsSep "\n" (map (x: ''
-                    echo "Testing file ${x}"
-                    ./file ${x}
-                    echo " "
-                  '') files)}
+                  ${builtins.concatStringsSep "\n" (
+                    map (x: ''
+                      echo "Testing file ${x}"
+                      ./file ${x}
+                      echo " "
+                    '') files
+                  )}
                   rm priviledged
                 ''
               )
