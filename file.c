@@ -4,20 +4,16 @@
 #include <string.h>
 
 enum Filetype {
-  FT_ASCII = 1 << 0,
-  FT_LATIN1 = 1 << 1,
-  FT_UTF8 = 1 << 2,
-  FT_DATA = 1 << 3,
-  FT_EMPTY = 1 << 4
+  ASCII = 1 << 0,
+  LATIN1 = 1 << 1,
+  UTF8 = 1 << 2,
+  DATA = 1 << 3,
+  EMPTY = 1 << 4
 } filetype;
 
 int is_ascii(char buffer[32]);
 int is_latin1(char buffer[32]);
 int is_utf8(char buffer[32]);
-
-static enum Filetype ASCII = FT_ASCII;
-static enum Filetype LATIN = FT_ASCII | FT_LATIN1;
-static enum Filetype UTF8 = FT_ASCII | FT_LATIN1 | FT_UTF8;
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -35,41 +31,41 @@ int main(int argc, char *argv[]) {
   char buffer[32];
   size_t bytes_read = fread(buffer, 1, 32, file);
 
-  filetype = FT_ASCII | FT_LATIN1 | FT_UTF8 | FT_DATA;
+  filetype = ASCII | LATIN1 | UTF8 | DATA;
 
   if (bytes_read == 0) {
-    filetype = FT_EMPTY;
+    filetype = EMPTY;
   }
 
   while (bytes_read > 0) {
     bytes_read = fread(buffer, 1, 32, file);
 
-    if ((filetype & FT_UTF8) && !is_utf8(buffer))
-      filetype ^= FT_UTF8;
+    if ((filetype & UTF8) && !is_utf8(buffer))
+      filetype ^= UTF8;
 
-    if ((filetype & FT_LATIN1) && !is_latin1(buffer))
-      filetype ^= FT_LATIN1;
+    if ((filetype & LATIN1) && !is_latin1(buffer))
+      filetype ^= LATIN1;
 
-    if ((filetype & FT_ASCII) && !is_ascii(buffer))
-      filetype ^= FT_ASCII;
+    if ((filetype & ASCII) && !is_ascii(buffer))
+      filetype ^= ASCII;
   }
 
-  if (filetype == FT_EMPTY) {
+  if (filetype == EMPTY) {
     printf("%s: Empty\n", argv[1]);
     return EXIT_SUCCESS;
   }
 
-  if (filetype == FT_DATA) {
+  if (filetype == DATA) {
     printf("%s: Data\n", argv[1]);
     return EXIT_SUCCESS;
   }
 
   printf("%s: ", argv[1]);
-  if (filetype & FT_ASCII)
+  if (filetype & ASCII)
     printf("ASCII ");
-  else if (filetype & FT_LATIN1)
+  else if (filetype & LATIN1)
     printf("LATIN1 ");
-  else if (filetype & FT_UTF8)
+  else if (filetype & UTF8)
     printf("UTF-8 ");
 
   printf("text\n");
