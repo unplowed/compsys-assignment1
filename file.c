@@ -21,19 +21,15 @@ static enum Filetype UTF8 = FT_ASCII | FT_LATIN1 | FT_UTF8;
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    printf("Usage: file <file>\n");
+    fprintf(stderr, "Usage: file path\n");
     return EXIT_FAILURE;
   }
 
   FILE *file = fopen(argv[1], "r");
 
-  if (file == NULL) {
-    printf("Couldn't open file '%s': %s\n", argv[1], strerror(errno));
-    return EXIT_FAILURE;
-  }
-  if (ferror(file)) {
-    printf("Couldn't read file '%s': %s\n", argv[1], strerror(errno));
-    return EXIT_FAILURE;
+  if (file == NULL || ferror(file)) {
+    printf("%s: cannot determine (%s)\n", argv[1], strerror(errno));
+    return EXIT_SUCCESS;
   }
 
   char buffer[32];
@@ -63,7 +59,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  if (filetype == 0) {
+  if (filetype == FT_DATA) {
     printf("%s: Data\n", argv[1]);
     return EXIT_SUCCESS;
   }
