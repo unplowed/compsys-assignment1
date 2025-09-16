@@ -42,13 +42,16 @@ int main(int argc, char *argv[]) {
 
     if ((filetype & UTF8) && !is_utf8(buffer))
       filetype ^= UTF8;
-
     if ((filetype & LATIN1) && !is_latin1(buffer))
       filetype ^= LATIN1;
-
     if ((filetype & ASCII) && !is_ascii(buffer))
       filetype ^= ASCII;
+
+    if (filetype == DATA)
+      break;
   }
+
+  fclose(file);
 
   if (filetype == EMPTY) {
     printf("%s: Empty\n", argv[1]);
