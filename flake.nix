@@ -28,6 +28,7 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               gcc
+              valgrind
             ];
           };
         }
