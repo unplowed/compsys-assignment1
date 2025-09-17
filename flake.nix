@@ -28,6 +28,7 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               gcc
+              libgcc
               valgrind
             ];
           };
@@ -50,7 +51,7 @@
 
             buildPhase = ''
               mkdir -p $out/bin
-              gcc $src -o $out/bin/${pname}
+              gcc -Wall -Wextra -pedantic -std=c18 $src -o $out/bin/${pname}
             '';
 
             meta.mainProgram = "file";
@@ -77,15 +78,24 @@
                     "file"
                     "priviledged"
                   ];
+                  run =
+                    x: # bash
+                    ''
+                      ASAN_OPTIONS=symbolize=1 ASAN_SYMBOLIZER_PATH=${pkgs.libllvm}/bin/llvm-symbolizer \
+                      valgrind --leak-check=full --track-fds=yes --track-origins=yes ./file ${x}
+                    '';
                 in
+                # bash
                 ''
-                  gcc file.c -o file
+                  # compile
+                  gcc -o file -Wall -Wextra -pedantic -std=c18 -O -g file.c
+
                   touch priviledged
                   chmod -r priviledged
                   ${builtins.concatStringsSep "\n" (
                     map (x: ''
                       echo "Testing file ${x}"
-                      ./file ${x}
+                      ${run x}
                       echo " "
                     '') files
                   )}
