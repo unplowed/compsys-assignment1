@@ -11,9 +11,9 @@ enum Filetype {
   EMPTY = 1 << 4
 } filetype;
 
-int is_ascii(char buffer[32]);
-int is_latin1(char buffer[32]);
-int is_utf8(char buffer[32]);
+int is_ascii(char buffer[32], size_t len);
+int is_latin1(char buffer[32], size_t len);
+int is_utf8(char buffer[32], size_t len);
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  char buffer[32];
+  char buffer[32] = {0};
   size_t bytes_read = fread(buffer, 1, 32, file);
 
   filetype = ASCII | LATIN1 | UTF8 | DATA;
@@ -38,17 +38,17 @@ int main(int argc, char *argv[]) {
   }
 
   while (bytes_read > 0) {
-    bytes_read = fread(buffer, 1, 32, file);
-
-    if ((filetype & UTF8) && !is_utf8(buffer))
+    if ((filetype & UTF8) && !is_utf8(buffer, bytes_read))
       filetype ^= UTF8;
-    if ((filetype & LATIN1) && !is_latin1(buffer))
+    if ((filetype & LATIN1) && !is_latin1(buffer, bytes_read))
       filetype ^= LATIN1;
-    if ((filetype & ASCII) && !is_ascii(buffer))
+    if ((filetype & ASCII) && !is_ascii(buffer, bytes_read))
       filetype ^= ASCII;
 
     if (filetype == DATA)
       break;
+
+    bytes_read = fread(buffer, 1, 32, file);
   }
 
   fclose(file);
@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 }
 
-int is_ascii(char buffer[32]) {
-  for (int i = 0; i < 32; i++) {
+int is_ascii(char buffer[32], size_t len) {
+  for (int i = 0; i < len; i++) {
     char b = buffer[i];
 
     if (b == 0 || b == 0x1A)
@@ -88,11 +88,11 @@ int is_ascii(char buffer[32]) {
   return 1;
 }
 
-int is_latin1(char buffer[32]) {
-  if (is_ascii(buffer))
+int is_latin1(char buffer[32], size_t len) {
+  if (is_ascii(buffer, len))
     return 1;
 
-  for (int i = 0; i < 32; i++) {
+  for (int i = 0; i < len; i++) {
     char b = buffer[i];
 
     if (b == 0 || b == 0x1A)
@@ -104,8 +104,8 @@ int is_latin1(char buffer[32]) {
   return 1;
 }
 
-int is_utf8(char buffer[32]) {
-  for (int i = 0; i < 32; i++) {
+int is_utf8(char buffer[32], size_t len) {
+  for (int i = 0; i < len; i++) {
     char b = buffer[i];
 
     if (b == 0 || b == 0x1A)
