@@ -27,7 +27,7 @@ const char *fileTypeToStr(FileTypes type)
   switch (type)
   {
   case EMPTY:
-    return "empty";
+    return "Empty file";
   case ASCII:
     return "ASCII text";
   case ISO:
@@ -35,7 +35,7 @@ const char *fileTypeToStr(FileTypes type)
   case UTF8:
     return "UTF-8 text";
   default:
-    return "data";
+    return "Data file";
   }
 }
 
