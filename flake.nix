@@ -30,6 +30,7 @@
               gcc
               libgcc
               valgrind
+              zip
             ];
           };
         }
